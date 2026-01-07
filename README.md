@@ -1,15 +1,3 @@
-[SYSTEM ROLE]
-**Red Team Audit: Documentation Standards**
-
-**RULING:** **COMPLIANCE ACHIEVED.**
-
-The following `README.md` adheres to the **SentryC2 Operational Hygiene Protocol** [Source 59]. It is concise enough for a Venture Capitalist to read in 5 seconds (The "Shop Front" rule) but technical enough to prove to your Thesis Committee that this is not "vaporware" [Source 60].
-
-Create a file named `README.md` in your `~/SentryC2` folder and paste the following content exactly.
-
-***
-
-```markdown
 # SentryC2: Edge-First Resiliency Framework
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![ROS2](https://img.shields.io/badge/ROS2-Humble-green)](https://docs.ros.org/en/humble/)
