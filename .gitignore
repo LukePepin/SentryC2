@@ -1,0 +1,16 @@
+# Unity Generated Files (CRITICAL)
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+
+# Python/ROS Generated Files
+__pycache__/
+*.py[cod]
+build/
+install/
+log/
+.vscode/
