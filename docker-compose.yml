@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  sentry-c2:
+    image: sentry-c2:alpha
+    container_name: sentry-c2-dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    # Network configuration
+    network_mode: host
+    
+    # Enable interactive terminal access
+    stdin_open: true
+    tty: true
+    
+    # Environment variables
+    environment:
+      - ROS_DOMAIN_ID=0
+      - ROS_LOCALHOST_ONLY=0
+      - DISPLAY=${DISPLAY}
+    
+    # Volume mounts for development
+    volumes:
+      - .:/workspace:rw
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    
+    # Capabilities for network operations (scapy, ARP poisoning)
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    
+    # Keep container running
+    command: /bin/bash -c "source /opt/ros/humble/setup.bash && tail -f /dev/null"
+    
+    # Auto-restart policy
+    restart: unless-stopped
+
+# Optional: Define networks if not using host mode
+# networks:
+#   ros_network:
+#     driver: bridge
