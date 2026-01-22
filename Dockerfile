@@ -16,7 +16,8 @@ RUN apt-get update && apt-get install -y \
 # scapy: Required for Week 9 ARP Poisoning/Packet Sniffing [Source 66]
 # cryptography: Required for Week 7 ECC/ZKP implementation [Source 59]
 # numpy: Required for Trust Score (Bayesian) math [Source 76]
-RUN pip3 install scapy cryptography numpy
+# pandas: Required for metrics logging and data analysis
+RUN pip3 install scapy cryptography numpy pandas
 
 # 4. Setup ROS Workspace Structure
 WORKDIR /root/ros2_ws/src

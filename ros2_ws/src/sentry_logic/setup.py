@@ -27,6 +27,7 @@ setup(
             'cyclic_server = sentry_logic.cyclic_action_server:main',
             'niryo_tcp_bridge = sentry_logic.niryo_tcp_bridge:main',
             'test_arm_trajectory = sentry_logic.test_arm_trajectory:main',
+            'network_sniffer = sentry_logic.network_sniffer:main',
         ],
     },
 )
