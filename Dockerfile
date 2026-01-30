@@ -22,11 +22,10 @@ RUN pip3 install scapy cryptography numpy pandas
 # 4. Setup ROS Workspace Structure
 WORKDIR /root/ros2_ws/src
 
-# 5. Install ROS-TCP-Endpoint as Python Package
-# The Unity bridge can work as a standalone Python package without building
-# This avoids the ROS1/ROS2 incompatibility issue
-COPY ros2_ws/src/ROS-TCP-Endpoint /root/ros2_ws/src/ROS-TCP-Endpoint
-RUN pip3 install -e /root/ros2_ws/src/ROS-TCP-Endpoint
+# 5. Install sentry_logic as Python Package
+# Install the Sentry logic package in editable mode for development
+COPY ros2_ws/src/sentry_logic /root/ros2_ws/src/sentry_logic
+RUN pip3 install -e /root/ros2_ws/src/sentry_logic
 
 # 6. Setup Workspace (Create Empty Build for Future Packages)
 WORKDIR /root/ros2_ws
