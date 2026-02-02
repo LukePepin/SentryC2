@@ -591,15 +591,10 @@ sequenceDiagram
     S1->>Sup: Vote A (proof attached)
     S2->>Sup: Vote B (proof attached)
     
-    Sup->>Sup: Collect votes; tally consensus
-    opt Consensus reached
-        Sup->>R1: Execute Action A
-        Sup->>R2: Execute Action A
-    end
-    opt Deadlock detected
-        Sup->>Sup: Invoke Tiebreaker Schnorr hash
-        Sup->>R1: Execute Action A by tiebreaker
-    end
+    Sup->>Sup: Tally consensus
+    Sup->>Sup: Apply Tiebreaker Schnorr hash
+    Sup->>R1: Execute Action A
+    Sup->>R2: Execute Action A
     
     R1->>Sup: Feedback: Action complete
     R2->>Sup: Feedback: Action complete
