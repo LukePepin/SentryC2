@@ -28,6 +28,7 @@ setup(
             'niryo_tcp_bridge = sentry_logic.niryo_tcp_bridge:main',
             'test_arm_trajectory = sentry_logic.test_arm_trajectory:main',
             'network_sniffer = sentry_logic.network_sniffer:main',
+            'zkp_auth_service = sentry_logic.zkp_auth_service:main',
         ],
     },
 )
