@@ -38,10 +38,19 @@ namespace Unity.Robotics.UrdfImporter.Control
         /// </summary>
         void OnJointStateReceived(JointStateMsg msg)
         {
+            Debug.Log($"[JointStateSubscriber] CALLBACK FIRED: {msg.position.Length} positions received");
+            
             if (msg.position == null || msg.position.Length == 0)
             {
                 Debug.LogWarning("JointStateSubscriber: Received empty joint positions");
                 return;
+            }
+
+            // **H1 RESILIENCE: Signal heartbeat to ControlModeManager watchdog**
+            ControlModeManager controlManager = GetComponent<ControlModeManager>();
+            if (controlManager != null)
+            {
+                controlManager.OnJointStateArrived();
             }
 
             // Apply positions to matching joints
@@ -52,6 +61,8 @@ namespace Unity.Robotics.UrdfImporter.Control
 
                 // Map ROS joint name to Unity link name (child link of the joint)
                 string linkName = MapJointNameToLinkName(jointName);
+                
+                Debug.Log($"[JointStateSubscriber] Joint {i}: ROS name={jointName}, mapped to link={linkName}, position={position}");
                 
                 if (linkName != null)
                 {
@@ -67,7 +78,17 @@ namespace Unity.Robotics.UrdfImporter.Control
                         ArticulationDrive drive = matchingJoint.xDrive;
                         drive.target = targetDegrees;
                         matchingJoint.xDrive = drive;
+                        
+                        Debug.Log($"  → Set {matchingJoint.name} target to {targetDegrees}°");
                     }
+                    else
+                    {
+                        Debug.LogError($"  → ERROR: Could not find joint for link {linkName}");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"  → No mapping for joint name {jointName}");
                 }
             }
         }
@@ -101,6 +122,7 @@ namespace Unity.Robotics.UrdfImporter.Control
                     return joint;
                 }
             }
+            Debug.LogWarning($"[JointStateSubscriber] Could NOT find joint: {name}. Available: {string.Join(", ", System.Linq.Enumerable.Select(articulationChain, j => j.name))}");
             return null;
         }
 
