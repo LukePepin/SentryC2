@@ -25,19 +25,8 @@ public class ControlModeManager : MonoBehaviour
     
     [Tooltip("Real robot (ROS2-driven, opaque)")]
     public GameObject realRobot;
-    
-    [Tooltip("Gripper attachment point on real robot")]
-    public Transform gripperAttachmentPoint;
 
-    [Header("=== PAYLOAD & DYNAMICS ===")]
-    [Tooltip("Object to be picked and placed")]
-    public GameObject workObject;
-    
-    [Tooltip("Attachment threshold: distance between gripper and object")]
-    public float attachmentThreshold = 0.05f;
-    
-    [Tooltip("Detachment threshold: gripper must open beyond this")]
-    public float detachmentThreshold = 0.2f;
+
 
     [Header("=== NETWORK RESILIENCE (H1) ===")]
     [Tooltip("Watchdog timeout: if no ROS2 heartbeat, trigger safety hold")]
@@ -58,7 +47,6 @@ public class ControlModeManager : MonoBehaviour
     private float latencyDeltaMeters = 0f;
 
     // State tracking
-    private bool isPayloadAttached = false;
     private GripperControlSystem gripperController;
 
     void Start()
@@ -77,9 +65,6 @@ public class ControlModeManager : MonoBehaviour
 
         // **BIDIRECTIONAL SYNC: Calculate Ghost vs. Real delta**
         CalculateLatencyDelta();
-
-        // **KINEMATIC ATTACHMENT: Conditional parenting**
-        UpdatePayloadAttachment();
 
         // **UI TELEMETRY: Update displays**
         UpdateTelemetry();
@@ -104,7 +89,7 @@ public class ControlModeManager : MonoBehaviour
 
         if (!wasHealthy && networkHealthy)
         {
-            Debug.Log("[H1 RESILIENCE] Network recovered. Resuming normal operation.");
+            // Network restored
         }
     }
 
@@ -130,8 +115,6 @@ public class ControlModeManager : MonoBehaviour
         {
             gripperController.safetyHoldActive = true;
         }
-
-        Debug.Log("[SAFETY] Real robot frozen. Gripper in SAFE_HOLD.");
     }
 
     /// <summary>
@@ -150,57 +133,7 @@ public class ControlModeManager : MonoBehaviour
         latencyDeltaMeters = Vector3.Distance(ghostEndEffectorPos, realEndEffectorPos);
     }
 
-    /// <summary>
-    /// KINEMATIC ATTACHMENT: Prevent Physics Slip
-    /// 
-    /// Theory: Physics-based grasping (friction) is unreliable in simulation.
-    /// Solution: Use Kinematic Attachment (Parenting) to lock object to gripper.
-    /// 
-    /// Logic:
-    ///   1. If gripper closed AND distance(gripper, object) < threshold:
-    ///      → SetParent(workObject, gripperAttachmentPoint)
-    ///      → workObject.GetComponent<Rigidbody>().isKinematic = true
-    ///   2. If gripper opened AND distance > detachment_threshold:
-    ///      → SetParent(workObject, null)
-    ///      → workObject.GetComponent<Rigidbody>().isKinematic = false
-    /// </summary>
-    private void UpdatePayloadAttachment()
-    {
-        if (workObject == null || gripperAttachmentPoint == null) return;
 
-        float distanceToGripper = Vector3.Distance(
-            workObject.transform.position,
-            gripperAttachmentPoint.position
-        );
-
-        Rigidbody rb = workObject.GetComponent<Rigidbody>();
-        if (rb == null) return;
-
-        // **ATTACH: Gripper closed and object near**
-        if (!isPayloadAttached &&
-            gripperController.gripperState == GripperControlSystem.GripperState.Closed &&
-            distanceToGripper < attachmentThreshold)
-        {
-            workObject.transform.SetParent(gripperAttachmentPoint);
-            rb.isKinematic = true;
-            isPayloadAttached = true;
-
-            Debug.Log("[KINEMATIC] Payload attached to gripper (physics frozen)");
-        }
-
-        // **DETACH: Gripper opened and object far**
-        if (isPayloadAttached &&
-            gripperController.gripperState == GripperControlSystem.GripperState.Open &&
-            distanceToGripper > detachmentThreshold)
-        {
-            workObject.transform.SetParent(null);
-            rb.isKinematic = false;
-            rb.linearVelocity = Vector3.zero; // Reset velocity on release
-            isPayloadAttached = false;
-
-            Debug.Log("[KINEMATIC] Payload detached from gripper (physics active)");
-        }
-    }
 
     /// <summary>
     /// UI TELEMETRY: Update connection status and latency display
@@ -216,8 +149,7 @@ public class ControlModeManager : MonoBehaviour
 
         if (latencyDisplay != null)
         {
-            latencyDisplay.text = $"Ghost-Real Δ: {latencyDeltaMeters * 1000f:F1}ms\n" +
-                                   $"Payload: {(isPayloadAttached ? "ATTACHED" : "FREE")}";
+            latencyDisplay.text = $"Ghost-Real Δ: {latencyDeltaMeters * 1000f:F1}ms";
         }
     }
 

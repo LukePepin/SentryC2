@@ -24,13 +24,9 @@ namespace Unity.Robotics.UrdfImporter.Control
             
             // Register subscriber
             ros.Subscribe<JointStateMsg>(topicName, OnJointStateReceived);
-            
-            Debug.Log($"JointStateSubscriber: Subscribed to {topicName}");
 
             // Get all articulation bodies
             articulationChain = GetComponentsInChildren<ArticulationBody>();
-            
-            Debug.Log($"JointStateSubscriber: Found {articulationChain.Length} ArticulationBody components");
         }
 
         /// <summary>
@@ -81,15 +77,9 @@ namespace Unity.Robotics.UrdfImporter.Control
                         
                         Debug.Log($"  → Set {matchingJoint.name} target to {targetDegrees}°");
                     }
-                    else
-                    {
-                        Debug.LogError($"  → ERROR: Could not find joint for link {linkName}");
-                    }
+                    // Joint not found - skip silently
                 }
-                else
-                {
-                    Debug.LogWarning($"  → No mapping for joint name {jointName}");
-                }
+                // else: No mapping - skip
             }
         }
 
@@ -118,30 +108,12 @@ namespace Unity.Robotics.UrdfImporter.Control
             foreach (var joint in articulationChain)
             {
                 if (joint.name == name)
-                {
                     return joint;
-                }
             }
-            Debug.LogWarning($"[JointStateSubscriber] Could NOT find joint: {name}. Available: {string.Join(", ", System.Linq.Enumerable.Select(articulationChain, j => j.name))}");
             return null;
         }
 
-        /// <summary>
-        /// Get gripper joint position for GripperControlSystem.
-        /// Returns 0.0 if gripper is closed, > 0.05 if open.
-        /// </summary>
-        public float GetGripperPosition()
-        {
-            // Find gripper joint (usually last in chain)
-            if (articulationChain == null || articulationChain.Length == 0)
-                return 1.0f; // Assume open if no chain
 
-            // Get last articulation (typically gripper)
-            ArticulationBody gripperJoint = articulationChain[articulationChain.Length - 1];
-            
-            // Return current position (radians)
-            return gripperJoint.jointPosition[0];
-        }
 
         void OnDestroy()
         {

@@ -17,9 +17,16 @@ class CyclicActionServer(Node):
         self.state = 'HOME'  # HOME -> TARGET -> HOME
         self.auth_token_valid = True
         self.get_logger().info('SentryC2 Logic Node Started. Mode: CYCLIC.')
-        
-        # Kill Switch: Flip auth_token_valid after 10 seconds
-        self.kill_switch_timer = self.create_timer(10.0, self.trigger_kill_switch)
+
+        # Kill Switch: Flip auth_token_valid after configurable delay
+        self.declare_parameter('auth_expiry_seconds', 120.0)
+        self.auth_expiry_seconds = float(self.get_parameter('auth_expiry_seconds').value)
+        if self.auth_expiry_seconds < 1.0:
+            self.auth_expiry_seconds = 1.0
+        self.kill_switch_timer = self.create_timer(self.auth_expiry_seconds, self.trigger_kill_switch)
+        self.get_logger().info(
+            f'Kill switch armed: auth will expire in {self.auth_expiry_seconds:.1f}s'
+        )
 
     def execute_cycle(self) -> None:
         if not self.auth_token_valid:

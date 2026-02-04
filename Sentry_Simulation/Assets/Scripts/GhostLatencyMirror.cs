@@ -41,8 +41,6 @@ public class GhostLatencyMirror : MonoBehaviour
         // Initialize history buffer
         positionHistory = new float[HISTORY_SIZE * realJoints.Length];
         timeHistory = new float[HISTORY_SIZE];
-
-        Debug.Log($"[GhostLatencyMirror] Initialized with {realJoints.Length} joints, latency={latencySeconds}s");
     }
 
     void FixedUpdate()

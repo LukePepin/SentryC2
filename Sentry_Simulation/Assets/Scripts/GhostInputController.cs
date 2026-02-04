@@ -90,10 +90,7 @@ public class GhostInputController : MonoBehaviour
     void Update()
     {
         if (keyboard == null || joints == null || joints.Length == 0)
-        {
-            Debug.LogWarning($"GhostInputController: keyboard={keyboard}, joints={joints}, joints.Length={joints?.Length ?? 0}");
             return;
-        }
 
         if (keyboard.leftArrowKey.wasPressedThisFrame)
         {

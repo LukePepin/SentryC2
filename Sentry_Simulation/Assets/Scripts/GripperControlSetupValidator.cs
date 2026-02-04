@@ -22,10 +22,11 @@ public class GripperControlSetupValidator : MonoBehaviour
 
     void OnEnable()
     {
-        if (!Application.isPlaying && !validateOnPlay)
-            return;
-
-        ValidateSetup();
+        // Validator disabled - gripper logic removed
+        // if (!Application.isPlaying && !validateOnPlay)
+        //     return;
+        //
+        // ValidateSetup();
     }
 
     /// <summary>
@@ -103,34 +104,6 @@ public class GripperControlSetupValidator : MonoBehaviour
             Log($"  ✓ realRobot: {gripperControl.realRobot.name}", 2);
         }
 
-        if (gripperControl.workObject == null)
-        {
-            LogWarning("  workObject is NULL - Pick-and-place will not work");
-            result = ValidationResult.Warning;
-        }
-        else
-        {
-            Log($"  ✓ workObject: {gripperControl.workObject.name}", 2);
-        }
-
-        if (gripperControl.gripperGhost == null)
-        {
-            LogWarning("  gripperGhost is NULL - Latency visualization may not work");
-        }
-        else
-        {
-            Log($"  ✓ gripperGhost: {gripperControl.gripperGhost.name}", 2);
-        }
-
-        if (gripperControl.gripperReal == null)
-        {
-            LogWarning("  gripperReal is NULL - Kinematic attachment may fail");
-        }
-        else
-        {
-            Log($"  ✓ gripperReal: {gripperControl.gripperReal.name}", 2);
-        }
-
         // Validate ArticulationBody chains
         if (gripperControl.ghostRobot != null)
         {
@@ -184,35 +157,6 @@ public class GripperControlSetupValidator : MonoBehaviour
         else
         {
             Log($"  ✓ realRobot: {controlManager.realRobot.name}", 2);
-        }
-
-        if (controlManager.gripperAttachmentPoint == null)
-        {
-            LogWarning("  gripperAttachmentPoint is NULL - Kinematic attachment will fail");
-            result = ValidationResult.Warning;
-        }
-        else
-        {
-            Log($"  ✓ gripperAttachmentPoint: {controlManager.gripperAttachmentPoint.name}", 2);
-        }
-
-        if (controlManager.workObject == null)
-        {
-            LogWarning("  workObject is NULL - Payload tracking disabled");
-        }
-        else
-        {
-            Log($"  ✓ workObject: {controlManager.workObject.name}", 2);
-            Rigidbody rb = controlManager.workObject.GetComponent<Rigidbody>();
-            if (rb == null)
-            {
-                LogError("  workObject has no Rigidbody - Add one!");
-                result = ValidationResult.Error;
-            }
-            else
-            {
-                Log($"  ✓ workObject has Rigidbody (isKinematic={rb.isKinematic})", 2);
-            }
         }
 
         return result;
