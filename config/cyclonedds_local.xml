@@ -17,9 +17,14 @@
       <Watermarks>
         <WhcHigh>500kB</WhcHigh>
       </Watermarks>
+      <BuiltinEndpointSet>full</BuiltinEndpointSet>
     </Internal>
     <Tracing>
       <Verbosity>warning</Verbosity>
+      <OutputFile>stderr</OutputFile>
     </Tracing>
+    <Compatibility>
+      <StandardsConformance>lax</StandardsConformance>
+    </Compatibility>
   </Domain>
 </CycloneDDS>
