@@ -17,3 +17,7 @@ build/
 install/
 log/
 .vscode/
+
+# Data
+*.csv
+ros2_ws/data/

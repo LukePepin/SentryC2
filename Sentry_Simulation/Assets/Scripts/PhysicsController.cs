@@ -37,8 +37,6 @@ namespace Unity.Robotics.UrdfImporter.Control
 
             // Get all articulation bodies in the robot
             articulationChain = GetComponentsInChildren<ArticulationBody>();
-            
-            Debug.Log($"PhysicsController: Configuring {articulationChain.Length} joints");
 
             // Configure each joint
             foreach (ArticulationBody joint in articulationChain)

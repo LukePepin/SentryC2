@@ -1,0 +1,3 @@
+repository "Sentry_Simulation/Sentry_Simulation@2475927084328@cloud"
+  path "/"
+    smartbranch "/main/no-vr"
