@@ -104,7 +104,7 @@ LABEL org.opencontainers.image.created=$BUILD_DATE
 LABEL org.opencontainers.image.source="https://github.com/lpep64/SentryC2"
 
 # ============================================================================
-# HEALTHCHECK (Optional)
+# 10. HEALTHCHECK (Optional)
 # ============================================================================
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD ros2 topic list > /dev/null 2>&1 || exit 1

@@ -24,13 +24,9 @@ namespace Unity.Robotics.UrdfImporter.Control
             
             // Register subscriber
             ros.Subscribe<JointStateMsg>(topicName, OnJointStateReceived);
-            
-            Debug.Log($"JointStateSubscriber: Subscribed to {topicName}");
 
             // Get all articulation bodies
             articulationChain = GetComponentsInChildren<ArticulationBody>();
-            
-            Debug.Log($"JointStateSubscriber: Found {articulationChain.Length} ArticulationBody components");
         }
 
         /// <summary>
@@ -38,10 +34,19 @@ namespace Unity.Robotics.UrdfImporter.Control
         /// </summary>
         void OnJointStateReceived(JointStateMsg msg)
         {
+            Debug.Log($"[JointStateSubscriber] CALLBACK FIRED: {msg.position.Length} positions received");
+            
             if (msg.position == null || msg.position.Length == 0)
             {
                 Debug.LogWarning("JointStateSubscriber: Received empty joint positions");
                 return;
+            }
+
+            // **H1 RESILIENCE: Signal heartbeat to ControlModeManager watchdog**
+            ControlModeManager controlManager = GetComponent<ControlModeManager>();
+            if (controlManager != null)
+            {
+                controlManager.OnJointStateArrived();
             }
 
             // Apply positions to matching joints
@@ -52,6 +57,8 @@ namespace Unity.Robotics.UrdfImporter.Control
 
                 // Map ROS joint name to Unity link name (child link of the joint)
                 string linkName = MapJointNameToLinkName(jointName);
+                
+                Debug.Log($"[JointStateSubscriber] Joint {i}: ROS name={jointName}, mapped to link={linkName}, position={position}");
                 
                 if (linkName != null)
                 {
@@ -67,8 +74,12 @@ namespace Unity.Robotics.UrdfImporter.Control
                         ArticulationDrive drive = matchingJoint.xDrive;
                         drive.target = targetDegrees;
                         matchingJoint.xDrive = drive;
+                        
+                        Debug.Log($"  → Set {matchingJoint.name} target to {targetDegrees}°");
                     }
+                    // Joint not found - skip silently
                 }
+                // else: No mapping - skip
             }
         }
 
@@ -97,9 +108,7 @@ namespace Unity.Robotics.UrdfImporter.Control
             foreach (var joint in articulationChain)
             {
                 if (joint.name == name)
-                {
                     return joint;
-                }
             }
             return null;
         }
