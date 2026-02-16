@@ -1,6 +1,9 @@
 {
   "name": "SentryC2 Development Container",
-  "dockerComposeFile": "../docker-compose.yml",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "../docker-compose.windows.yml"
+  ],
   "service": "sentry-c2",
   "workspaceFolder": "/workspace",
   
@@ -26,7 +29,7 @@
   
   "remoteUser": "root",
   
-  "forwardPorts": [10000],
+  "forwardPorts": [10000, 10005],
   
   "features": {
     "ghcr.io/devcontainers/features/git:1": {}

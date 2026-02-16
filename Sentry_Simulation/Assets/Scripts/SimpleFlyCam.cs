@@ -51,7 +51,7 @@ public class SimpleFlyCam : MonoBehaviour
         Vector3 euler = transform.localEulerAngles;
         rotationX = NormalizeAngle(euler.x);
         rotationY = NormalizeAngle(euler.y);
-        
+
         // Cache input devices
         mouse = Mouse.current;
         keyboard = Keyboard.current;
@@ -73,7 +73,7 @@ public class SimpleFlyCam : MonoBehaviour
             Vector2 mouseDelta = mouse.delta.ReadValue();
             rotationY += mouseDelta.x * sensitivity * 0.1f; // Scale down raw delta
             rotationX += mouseDelta.y * sensitivity * 0.1f * (invertY ? 1f : -1f);
-            
+
             // Clamp pitch to prevent gimbal lock
             rotationX = Mathf.Clamp(rotationX, -90f, 90f);
 
@@ -83,15 +83,15 @@ public class SimpleFlyCam : MonoBehaviour
 
         // === TRANSLATION (WASD + QE) ===
         Vector3 moveDir = Vector3.zero;
-        
+
         // Horizontal (A/D)
         if (keyboard.aKey.isPressed) moveDir -= transform.right;
         if (keyboard.dKey.isPressed) moveDir += transform.right;
-        
+
         // Forward (W/S)
         if (keyboard.wKey.isPressed) moveDir += transform.forward;
         if (keyboard.sKey.isPressed) moveDir -= transform.forward;
-        
+
         // Elevation (E / Q)
         if (keyboard.eKey.isPressed) moveDir.y += 1f;
         if (keyboard.qKey.isPressed) moveDir.y -= 1f;

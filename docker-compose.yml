@@ -25,6 +25,16 @@ services:
     volumes:
       - .:/workspace:rw
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./ros2_ws/build:/workspace/ros2_ws/build:rw
+      - ./ros2_ws/install:/workspace/ros2_ws/install:rw
+
+  app:
+    build: .
+    volumes:
+      - .:/app
+      - ./ros2_ws/build:/app/ros2_ws/build:rw
+      - ./ros2_ws/install:/app/ros2_ws/install:rw
+    # ...add other service config as needed...
     
     # Capabilities for network operations (scapy, ARP poisoning)
     cap_add:

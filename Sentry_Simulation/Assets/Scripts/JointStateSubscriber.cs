@@ -21,7 +21,7 @@ namespace Unity.Robotics.UrdfImporter.Control
         {
             // Get ROS connection
             ros = ROSConnection.GetOrCreateInstance();
-            
+
             // Register subscriber
             ros.Subscribe<JointStateMsg>(topicName, OnJointStateReceived);
 
@@ -35,7 +35,7 @@ namespace Unity.Robotics.UrdfImporter.Control
         void OnJointStateReceived(JointStateMsg msg)
         {
             Debug.Log($"[JointStateSubscriber] CALLBACK FIRED: {msg.position.Length} positions received");
-            
+
             if (msg.position == null || msg.position.Length == 0)
             {
                 Debug.LogWarning("JointStateSubscriber: Received empty joint positions");
@@ -57,24 +57,24 @@ namespace Unity.Robotics.UrdfImporter.Control
 
                 // Map ROS joint name to Unity link name (child link of the joint)
                 string linkName = MapJointNameToLinkName(jointName);
-                
+
                 Debug.Log($"[JointStateSubscriber] Joint {i}: ROS name={jointName}, mapped to link={linkName}, position={position}");
-                
+
                 if (linkName != null)
                 {
                     // Find matching ArticulationBody
                     ArticulationBody matchingJoint = FindJointByName(linkName);
-                    
+
                     if (matchingJoint != null)
                     {
                         // Convert radians to degrees for Unity
                         float targetDegrees = (float)(position * Mathf.Rad2Deg);
-                        
+
                         // Set target position
                         ArticulationDrive drive = matchingJoint.xDrive;
                         drive.target = targetDegrees;
                         matchingJoint.xDrive = drive;
-                        
+
                         Debug.Log($"  → Set {matchingJoint.name} target to {targetDegrees}°");
                     }
                     // Joint not found - skip silently
@@ -111,23 +111,6 @@ namespace Unity.Robotics.UrdfImporter.Control
                     return joint;
             }
             return null;
-        }
-
-        /// <summary>
-        /// Get gripper joint position for GripperControlSystem.
-        /// Returns 0.0 if gripper is closed, > 0.05 if open.
-        /// </summary>
-        public float GetGripperPosition()
-        {
-            // Find gripper joint (usually last in chain)
-            if (articulationChain == null || articulationChain.Length == 0)
-                return 1.0f; // Assume open if no chain
-
-            // Get last articulation (typically gripper)
-            ArticulationBody gripperJoint = articulationChain[articulationChain.Length - 1];
-            
-            // Return current position (radians)
-            return gripperJoint.jointPosition[0];
         }
 
         void OnDestroy()
