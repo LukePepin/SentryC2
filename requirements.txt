@@ -24,6 +24,12 @@ pandas>=2.0.0
 # ROS2 integration (already in base image)
 # rclpy, std_msgs, geometry_msgs, sensor_msgs provided by ros:humble-ros-base
 
+# Niryo SDK (Ned2 / One)
+pyniryo2>=1.0.0
+
+# ROS1 websocket client used by pyniryo2 (pyniryo2 needs actionlib, removed in >=1.5)
+roslibpy==1.4.0
+
 # Development dependencies (test/linting - NOT in production)
 # Install these in dev environment only:
 # pytest==7.4.0

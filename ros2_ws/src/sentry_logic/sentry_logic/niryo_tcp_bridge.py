@@ -18,7 +18,7 @@ class NiryoTCPBridge(Node):
         super().__init__('niryo_tcp_bridge')
         
         # Parameters
-        self.declare_parameter('robot_ip', '192.168.0.244')
+        self.declare_parameter('robot_ip', '192.168.0.148')
         self.declare_parameter('publish_rate', 10.0)  # Hz
         
         self.robot_ip = self.get_parameter('robot_ip').value

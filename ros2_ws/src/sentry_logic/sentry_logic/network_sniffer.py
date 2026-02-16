@@ -9,7 +9,7 @@ import time
 import pandas as pd
 
 # CONFIG
-ROBOT_IP = "192.168.0.244"
+ROBOT_IP = "192.168.0.148"
 LOG_FILE = "baseline_metrics_h0.csv"
 
 def packet_callback(packet):

@@ -11,7 +11,11 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=['setuptools'],
+    install_requires=[
+        'setuptools',
+        'pyniryo2>=1.0.0',
+        'roslibpy==1.4.0',
+    ],
     zip_safe=True,
     maintainer='root',
     maintainer_email='lukepepin@outlook.com',
