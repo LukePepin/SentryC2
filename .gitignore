@@ -85,12 +85,6 @@ ros2_ws/build/
 ros2_ws/install/
 ros2_ws/log/
 
-# Test data and experimental results (excluded from repository)
-# NOTE: Email results to full data repository on PC after test completion
-data/
-**/data/
-*.csv
-
 # Baseline metrics and test outputs
 **/baseline_metrics*.csv
 **/metrics*.csv

@@ -1,0 +1,42 @@
+# ============================================================================
+# SentryC2 Docker Compose Override for Windows (Docker Desktop + WSL2)
+# ============================================================================
+# Purpose: Replace host networking with bridge + port mapping for Docker Desktop
+#          where network_mode: host is unsupported (Windows/macOS).
+#
+# Usage (from WSL2 terminal or PowerShell):
+#   docker compose -f docker-compose.yml -f docker-compose.windows.yml build --no-cache
+#   docker compose -f docker-compose.yml -f docker-compose.windows.yml up -d
+#
+# Or set COMPOSE_FILE in .env:
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.windows.yml
+# ============================================================================
+
+services:
+  sentry-c2:
+    # Override: Remove host networking, use bridge with explicit ports
+    network_mode: bridge
+
+    # ROS2 DDS discovery + Unity ROS-TCP-Endpoint
+    ports:
+      - "10000:10000"   # ROS-TCP-Endpoint (Unity bridge)
+      - "10005:10005"   # ROS-TCP-Endpoint (alt port used in README)
+      - "7400-7410:7400-7410/udp"  # DDS discovery (CycloneDDS)
+      - "7400-7410:7400-7410/tcp"  # DDS discovery (CycloneDDS)
+
+    environment:
+      - ROS_DOMAIN_ID=0
+      - ROS_LOCALHOST_ONLY=1
+      # CycloneDDS: Force localhost for bridge mode
+      - CYCLONEDDS_URI=<CycloneDDS><Domain><General><Interfaces><NetworkInterface name="eth0" /></Interfaces></General></Domain></CycloneDDS>
+      # Remove DISPLAY — no X11 forwarding on Windows by default
+      # For X11: Install VcXsrv and set DISPLAY=host.docker.internal:0
+    
+    # Remove X11 socket mount (does not exist on Windows)
+    # NOTE: The base compose X11 volume (/tmp/.X11-unix) will still appear
+    # in merged config since compose lists merge, not replace. Docker Desktop
+    # auto-creates it as empty dir — harmless. For X11 on Windows, install
+    # VcXsrv and uncomment DISPLAY below.
+    # - DISPLAY=host.docker.internal:0
+    volumes:
+      - .:/workspace:rw
