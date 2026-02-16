@@ -4,7 +4,7 @@ This document details the complete communication architecture between the physic
 
 ## Architecture Overview
 
-The SentryC2 system uses a bi-directional communication pattern where:
+The SentryC2 system uses a bidirectional communication pattern where:
 - **ROS2** acts as the central middleware hub
 - **Unity** serves as the digital twin visualization
 - **Docker** provides the isolated runtime environment
@@ -34,7 +34,7 @@ flowchart TB
         subgraph UnityScripts["C# Scripts"]
             ROSConnection["ROSConnection.cs<br/>(Unity Robotics)"]
             JointSub["JointStateSubscriber.cs<br/>Subscribes: /joint_states"]
-            RealTimeReflector["RealTimeReflector.cs<br/>Subscribes: /joint_states"]
+            JointPub["JointTrajectoryPublisher.cs<br/>Publishes: /follow_joint_trajectory"]
             PhysicsController["PhysicsController.cs<br/>(Joint Drive Config)"]
         end
         
@@ -55,13 +55,13 @@ flowchart TB
     
     JointStateTopic -->|"ROS2 DDS<br/>Distribution"| TCPEndpoint
     
-    TCPEndpoint <-->|"TCP Socket<br/>10.0.2.2:10000<br/>(Unity → ROS)"| ROSConnection
+    TCPEndpoint <-->|"TCP Socket<br/>10.0.2.2:10000<br/>(Unity ↔ ROS)"| ROSConnection
     
     ROSConnection -->|"Deserialize<br/>JointStateMsg"| JointSub
-    ROSConnection -->|"Deserialize<br/>JointStateMsg"| RealTimeReflector
+    ROSConnection -->|"Publish<br/>JointTrajectoryMsg"| JointPub
     
     JointSub -->|"Apply Joint<br/>Positions<br/>(rad → deg)"| ArticulationChain
-    RealTimeReflector -->|"Apply Joint<br/>Positions<br/>(rad → deg)"| ArticulationChain
+    JointPub -->|"Trajectory<br/>Commands"| TrajectoryTopic
     
     PhysicsController -.->|"Configure<br/>Drive Parameters"| ArticulationChain
     ArticulationChain -->|"Render"| VisualModel
@@ -78,7 +78,7 @@ flowchart TB
     classDef robotNode fill:#9c27b0,stroke:#7b1fa2,stroke-width:2px,color:#fff
     
     class CyclicServer,NiryoBridge,TCPEndpoint rosNode
-    class ROSConnection,JointSub,RealTimeReflector,PhysicsController unityNode
+    class ROSConnection,JointSub,JointPub,PhysicsController unityNode
     class JointStateTopic,TrajectoryTopic topicNode
     class NiryoHardware,PyNiryo robotNode
 ```
@@ -146,7 +146,7 @@ POSE_HOME → Interpolate 100 steps → POSE_TARGET → Interpolate 100 steps �
 - Source: Real-time joint positions from `pyniryo2.NiryoRobot.arm.get_joints()`
 
 **Subscribers:**
-- Topic: `/niryo_robot_follow_joint_trajectory_controller/follow_joint_trajectory`
+- Topic: `/follow_joint_trajectory`
 - Type: `trajectory_msgs/JointTrajectory`
 - Action: Executes trajectory on physical robot using PyNiryo2 SDK
 
@@ -251,19 +251,19 @@ base_link (fixed)
 
 ---
 
-#### 4.3 Real-Time Reflector
+#### 4.3 Joint Trajectory Publisher
 
-**Script:** `RealTimeReflector.cs`
+**Script:** `JointTrajectoryPublisher.cs`
 
-**Purpose:** Alternative subscriber for direct joint mapping (no name conversion)
+**Purpose:** Sends robot trajectories from Unity to ROS2 for execution on the physical robot
 
-**Difference from JointStateSubscriber:**
-- Uses direct array index mapping (assumes joint order matches)
-- Requires manual assignment of `unityJoints` list in Inspector
-- Faster execution (no name lookup)
-- Less flexible (order-dependent)
+**Process Flow:**
+1. **Publish:** Builds a `trajectory_msgs/JointTrajectory` message
+2. **Path:** Uses joint names that match the ROS2 controller ordering
+3. **Timing:** Sets `time_from_start` for each trajectory point
+4. **Send:** Publishes on `/follow_joint_trajectory` via `ROSConnection`
 
-**Usage:** Preferred when joint order is guaranteed to match ROS message order
+**Note:** This enables Unity → ROS2 → Niryo Ned2 control in addition to the inbound state stream.
 
 ---
 
@@ -369,7 +369,7 @@ base_link (fixed)
 
 ---
 
-### Sequence 3: Unity → Physical Robot (Future/Trajectory Execution)
+### Sequence 3: Unity → Physical Robot (Trajectory Execution)
 
 ```
 ┌─────────────┐        ┌──────────────┐        ┌──────────────┐        ┌──────────────────┐
@@ -596,19 +596,21 @@ msg.position = [0.0, -0.7, -0.7, 0.0, -0.5, 0.0]  # Radians
 - `name[i]` corresponds to `position[i]`
 - Unity must map `name[i]` to correct `ArticulationBody`
 
-### RealTimeReflector Unity Joints List
+### Unity JointTrajectory Message
 
-**File:** `RealTimeReflector.cs`
+**File:** `JointTrajectoryPublisher.cs`
 
 ```csharp
-public List<ArticulationBody> unityJoints;  // Manually assigned in Inspector
-
-void UpdateRobotPose(SensorJointState msg) {
-    for (int i = 0; i < unityJoints.Count; i++) {
-        float degrees = (float)msg.position[i] * Mathf.Rad2Deg;
-        unityJoints[i].xDrive.target = degrees;  // Direct array index mapping
+// Joint names must match the ROS2 controller order
+var msg = new JointTrajectoryMsg {
+    joint_names = new[] { "joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6" },
+    points = new[] {
+        new JointTrajectoryPointMsg {
+            positions = new double[] { 0.0, -0.7, -0.7, 0.0, -0.5, 0.0 },
+            time_from_start = new DurationMsg { sec = 2, nanosec = 0 }
+        }
     }
-}
+};
 ```
 
 ---

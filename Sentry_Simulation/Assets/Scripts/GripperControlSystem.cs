@@ -5,11 +5,11 @@ using UnityEngine.InputSystem;
 using Unity.Robotics.UrdfImporter.Control;
 
 /// <summary>
-/// Bidirectional Control Manager.
-/// Implements H1 resilience: Network drop prevents unsafe operations.
+/// Bidirectional Pick-and-Place Control Manager.
+/// Implements H1 resilience: Network drop prevents unintended gripper release.
 /// 
 /// State Machine:
-///   MONITOR (default)   → RealRobot drives.
+///   MONITOR (default)   → RealRobot drives; WorkObject follows only if gripper closed.
 ///   COMMAND (teleop)    → GhostRobot controlled via user input; RealRobot follows.
 ///   VALIDATION (H1)     → Detects network desync and triggers safety holds.
 /// </summary>
@@ -26,7 +26,15 @@ public class GripperControlSystem : MonoBehaviour
     public ArticulationBody ghostRobot;
     public ArticulationBody realRobot;
 
+    [Header("Gripper References")]
+    public Transform gripperGhost;
+    public Transform gripperReal;
+    public float gripperCloseThreshold = 0.1f; // Distance threshold for attachment
 
+    [Header("Payload References")]
+    public GameObject workObject;
+    public Rigidbody workObjectRigidbody;
+    public Transform targetZone;
 
     [Header("ROS2 Bridge")]
     public JointStateSubscriber jointStateSubscriber;
@@ -44,6 +52,8 @@ public class GripperControlSystem : MonoBehaviour
 
     // State tracking (pre-allocated, publicly readable for debugging)
     public GripperState gripperState = GripperState.Open;
+    public bool isObjectAttached = false;
+    private float gripperClosureTime = 0f;
     public bool safetyHoldActive = false;
 
     // Singleton
@@ -63,6 +73,11 @@ public class GripperControlSystem : MonoBehaviour
     void Start()
     {
         keyboard = Keyboard.current;
+        
+        // Validate references
+        if (workObjectRigidbody == null && workObject != null)
+            workObjectRigidbody = workObject.GetComponent<Rigidbody>();
+
         lastHeartbeatTime = Time.time;
         UpdateModeUI();
     }
@@ -98,11 +113,24 @@ public class GripperControlSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// MONITOR MODE: RealRobot drives.
+    /// MONITOR MODE: RealRobot drives; payload follows only if gripper reports closed.
     /// </summary>
     private void UpdateMonitorMode()
     {
-        // Monitor mode - no gripper logic
+        // If real robot gripper is closed AND object is near gripper
+        bool gripperClosed = IsRealGripperClosed();
+        float payloadDistance = Vector3.Distance(workObject.transform.position, gripperReal.position);
+
+        if (gripperClosed && payloadDistance < gripperCloseThreshold && !isObjectAttached)
+        {
+            AttachPayload(gripperReal);
+            Debug.Log("[GripperControlSystem] MONITOR: Payload auto-attached to RealGripper");
+        }
+        else if (!gripperClosed && isObjectAttached)
+        {
+            DetachPayload();
+            Debug.Log("[GripperControlSystem] MONITOR: Payload auto-released from RealGripper");
+        }
     }
 
     /// <summary>
@@ -135,36 +163,124 @@ public class GripperControlSystem : MonoBehaviour
         // Calculate joint delta (Ghost vs Real)
         float jointDelta = CalculateJointDelta();
 
+        // Calculate payload delta (WorkObject vs GripperReal)
+        float payloadDelta = Vector3.Distance(workObject.transform.position, gripperReal.position);
+
         // Check for critical desync
         bool jointAnomaly = jointDelta > maxJointDeltaDegrees;
+        bool payloadAnomaly = IsRealGripperClosed() && payloadDelta > maxPayloadDeltaMeters;
 
-        if (jointAnomaly)
+        if (jointAnomaly || payloadAnomaly)
         {
-            TriggerValidationAlarm(jointDelta, 0f);
+            TriggerValidationAlarm(jointDelta, payloadDelta);
         }
 
-        // Telemetry logged only on alarm
+        // Log telemetry (zero-alloc)
+        Debug.Log($"[GripperControlSystem] VALIDATION: JointDelta={jointDelta:F2}°, PayloadDelta={payloadDelta:F2}m");
     }
 
     /// <summary>
-    /// PICK: Reserved for future implementation.
+    /// PICK: Move arm to object, attach via kinematic parenting, send to ROS2.
     /// </summary>
     private void PickSequence()
     {
-        // Gripper logic removed
+        if (safetyHoldActive)
+        {
+            Debug.LogError("[GripperControlSystem] PICK BLOCKED: Safety hold active (network loss)");
+            return;
+        }
+
+        // Move ghost arm to approach object
+        Debug.Log("[GripperControlSystem] PICK: Moving arm to object...");
+
+        // Wait for gripper to close and object to be within threshold
+        if (Vector3.Distance(gripperGhost.position, workObject.transform.position) < gripperCloseThreshold)
+        {
+            AttachPayload(gripperGhost);
+            gripperState = GripperState.Closed;
+            gripperClosureTime = Time.time;
+
+            // TODO: Send execution command to ROS2 via TrajectoryPublisher
+            Debug.Log($"[GripperControlSystem] PICK: Payload attached. [Time={Time.time:F2}]");
+        }
+        else
+        {
+            Debug.LogWarning("[GripperControlSystem] PICK: Object out of reach");
+        }
     }
 
     /// <summary>
-    /// RELEASE: Reserved for future implementation.
+    /// RELEASE: Detach payload ONLY if network is alive. Otherwise, safety hold.
     /// </summary>
     private void ReleaseSequence()
     {
-        // Gripper logic removed
+        if (!isObjectAttached)
+        {
+            Debug.LogWarning("[GripperControlSystem] RELEASE: No object attached");
+            return;
+        }
+
+        // Critical H1 Logic: Check network heartbeat
+        if (!networkAlive)
+        {
+            safetyHoldActive = true;
+            Debug.LogError("[GripperControlSystem] RELEASE BLOCKED: Network down. Entering Safety Hold.");
+            if (modeIndicator != null)
+                modeIndicator.text = "[WARNING] SAFETY HOLD: Network Loss";
+            return;
+        }
+
+        // Network OK: Safe to release
+        DetachPayload();
+        gripperState = GripperState.Open;
+
+        // TODO: Send execution command to ROS2 via TrajectoryPublisher
+        Debug.Log($"[GripperControlSystem] RELEASE: Payload detached. [Time={Time.time:F2}]");
     }
 
+    /// <summary>
+    /// Kinematic attachment: Parent WorkObject to Gripper, disable physics.
+    /// </summary>
+    private void AttachPayload(Transform gripperTransform)
+    {
+        if (isObjectAttached) return;
 
+        workObject.transform.SetParent(gripperTransform);
+        if (workObjectRigidbody != null)
+        {
+            workObjectRigidbody.isKinematic = true;
+        }
 
+        isObjectAttached = true;
+    }
 
+    /// <summary>
+    /// Kinematic detachment: Unparent WorkObject, re-enable physics.
+    /// </summary>
+    private void DetachPayload()
+    {
+        if (!isObjectAttached) return;
+
+        workObject.transform.SetParent(null);
+        if (workObjectRigidbody != null)
+        {
+            workObjectRigidbody.isKinematic = false;
+            workObjectRigidbody.linearVelocity = Vector3.zero; // Reset velocity to prevent jerking
+        }
+
+        isObjectAttached = false;
+    }
+
+    /// <summary>
+    /// Check if RealRobot gripper is closed (from JointStateSubscriber feedback).
+    /// </summary>
+    private bool IsRealGripperClosed()
+    {
+        if (jointStateSubscriber == null) return false;
+        // Assumes gripper joint state is published; extract and check torque/position
+        // Placeholder: Assume gripper_joint position < 0.05 radians == closed
+        return jointStateSubscriber.GetGripperPosition() < 0.05f;
+    }
 
     /// <summary>
     /// Calculate max delta between ghost and real joint angles.

@@ -1,23 +1,286 @@
-# Unity Generated Files (CRITICAL)
+# ============================================================================
+# SentryC2 COMPREHENSIVE .gitignore
+# ============================================================================
+# Purpose: Prevent bloat, secrets leakage, reproducibility violations
+# Standards: DO-178C, Bayh-Dole, FAR Part 7 (Safety-Critical Robotics)
+# ============================================================================
+
+# ============================================================================
+# UNITY ENGINE (Sentry_Simulation)
+# ============================================================================
+# CRITICAL: Library/ alone can be 5-10GB. NEVER commit any of these.
+# See: https://docs.unity3d.com/Manual/SourceControl.html
 Sentry_Simulation/[Ll]ibrary/
+Sentry_Simulation/[Ll]ibrary/*
 Sentry_Simulation/[Tt]emp/
 Sentry_Simulation/[Oo]bj/
 Sentry_Simulation/[Bb]uild/
 Sentry_Simulation/[Bb]uilds/
 Sentry_Simulation/[Ll]ogs/
 Sentry_Simulation/[Uu]ser[Ss]ettings/
+
+# Unity project files (use .sln only for repo)
 Sentry_Simulation/*.csproj
+Sentry_Simulation/*.unityproj
 Sentry_Simulation/*.sln
 Sentry_Simulation/*.slnx
+Sentry_Simulation/*.suo
+Sentry_Simulation/*.user
+Sentry_Simulation/*.userprefs
 
-# Python/ROS Generated Files
+# Unity generated files
+Sentry_Simulation/*.pidb
+Sentry_Simulation/*.pidb.meta
+Sentry_Simulation/sysinfo.txt
+Sentry_Simulation/ExportedObj/
+
+# Crash dumps & profiler
+Sentry_Simulation/Crashes/
+Sentry_Simulation/Profiler/
+*.stacktrace
+*.prof
+
+# Asset Store
+Sentry_Simulation/Assets/AssetStoreTools*
+
+# ============================================================================
+# PYTHON & ROS2 BUILD ARTIFACTS
+# ============================================================================
+
+# Python compilation
 __pycache__/
 *.py[cod]
+*.py?
+*.pyo
+*.pyd
+.Python
+
+# Distribution / packaging
+.eggs/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ROS2 build system
+colcon/
 build/
 install/
 log/
-.vscode/
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
 
-# Data
+# Test data and experimental results (excluded from repository)
+# NOTE: Email results to full data repository on PC after test completion
+data/
+**/data/
 *.csv
-ros2_ws/data/
+
+# Baseline metrics and test outputs
+**/baseline_metrics*.csv
+**/metrics*.csv
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ============================================================================
+# SECRETS & CREDENTIALS (Bayh-Dole + FAR Part 7 Compliance)
+# ============================================================================
+# CRITICAL: Never commit credentials, keys, or tokens
+
+.env
+.env.local
+.env.*.local
+.env.secret
+secrets/
+credentials.json
+credentials.yml
+
+# Private keys
+*.key
+*.pem
+*.p8
+*.pks
+*.keystore
+*.jks
+*.cer
+*.pfx
+*.p12
+
+# API tokens
+.credentials
+.api_key
+.access_token
+.token
+*.token
+
+# AWS, GCP, Azure
+.aws/
+.azure/
+.gcp/
+google-credentials.json
+
+# Docker secrets
+.docker/
+.dockercfg
+
+# SSH keys
+.ssh/
+
+# ============================================================================
+# IDE / EDITOR CONFIGURATIONS
+# ============================================================================
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Visual Studio
+.vs/
+.vscode/
+*.sln.DotSettings
+*.DotSettings.user
+
+# JetBrains IDEs
+.idea/
+.idea_modules/
+*.iml
+*.iws
+*.ipr
+*.ioc
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim / Neovim
+*.swp
+*.swo
+*~
+.vim/
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ============================================================================
+# TEMPORARY & BUILD OUTPUTS
+# ============================================================================
+
+# Compiled objects
+*.o
+*.a
+*.lib
+*.dll
+*.dylib
+*.so
+*.exe
+*.out
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+*.orig
+*.swn
+*.rej
+*.conflict
+
+# Test results
+*test-results.xml
+coverage.xml
+junit.xml
+
+# Documentation builds
+docs/_build/
+docs/build/
+site/
+
+# ============================================================================
+# OPERATING SYSTEM FILES
+# ============================================================================
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.AppleDouble
+.LSOverride
+.TemporaryItems
+.Trashes
+._*
+
+# Linux
+.Xauthority
+.xsession-errors
+
+# ============================================================================
+# VENDOR & DEPENDENCIES
+# ============================================================================
+# Do NOT ignore node_modules, pip packages should be in requirements.txt
+# Submodules are managed separately
+
+# ============================================================================
+# CI/CD & DEVOPS
+# ============================================================================
+
+# GitHub workflows temp files
+.github/workflows/.tmp/
+
+# Docker build context (unless needed)
+.dockerignore.tmp
+docker-compose.override.yml
+
+# ============================================================================
+# LARGE BINARY FILES (Prevent Repo Bloat)
+# ============================================================================
+
+# Videos
+*.mp4
+*.avi
+*.mov
+*.flv
+*.mkv
+
+# Large archives
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
+
+# ============================================================================
+# AUTO-GENERATED FILES (DO NOT COMMIT)
+# ============================================================================
+
+# This repository's auto-generated verification artifacts
+builds/
+*.reproducibility_*.log
+.REPRODUCIBILITY_REPORT.txt

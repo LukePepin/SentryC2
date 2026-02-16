@@ -1,0 +1,32 @@
+# SentryC2 Python Dependencies
+# Generated: 2026-02-02
+# Purpose: Stable builds on Ubuntu 22.04 (Jammy) without brittle hash pins
+
+# Core ROS2 Integration
+PyYAML>=6.0
+
+# Cryptography (ECC/ZKP support)
+cryptography>=41.0.0
+
+# Network packet manipulation (for chaos testing)
+scapy>=2.5.0
+
+# Numerical computing (Trust Score calculations)
+numpy>=1.24.0
+
+# Data analysis & metrics logging
+pandas>=2.0.0
+
+# Zero-Knowledge Proof cryptography (Schnorr protocol)
+# Note: micro-ecc compiled from source (see Dockerfile build-essential)
+# For Pi: pip3 install micro-ecc-python --only-binary :all:
+
+# ROS2 integration (already in base image)
+# rclpy, std_msgs, geometry_msgs, sensor_msgs provided by ros:humble-ros-base
+
+# Development dependencies (test/linting - NOT in production)
+# Install these in dev environment only:
+# pytest==7.4.0
+# pylint==3.0.0
+# mypy==1.5.1
+# black==23.9.1

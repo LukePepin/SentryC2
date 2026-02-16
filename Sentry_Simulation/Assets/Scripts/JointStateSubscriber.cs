@@ -113,7 +113,22 @@ namespace Unity.Robotics.UrdfImporter.Control
             return null;
         }
 
+        /// <summary>
+        /// Get gripper joint position for GripperControlSystem.
+        /// Returns 0.0 if gripper is closed, > 0.05 if open.
+        /// </summary>
+        public float GetGripperPosition()
+        {
+            // Find gripper joint (usually last in chain)
+            if (articulationChain == null || articulationChain.Length == 0)
+                return 1.0f; // Assume open if no chain
 
+            // Get last articulation (typically gripper)
+            ArticulationBody gripperJoint = articulationChain[articulationChain.Length - 1];
+            
+            // Return current position (radians)
+            return gripperJoint.jointPosition[0];
+        }
 
         void OnDestroy()
         {
