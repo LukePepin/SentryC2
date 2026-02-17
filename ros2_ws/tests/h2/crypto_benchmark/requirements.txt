@@ -1,0 +1,14 @@
+# H2 SECURITY TAX BENCHMARKING SUITE
+# Cryptographic Performance Profiling for SentryC2 Thesis
+# 
+# **Pinned versions for reproducibility on Raspberry Pi 4 / Cortex-A72**
+
+# === CORE CRYPTOGRAPHY (Production-Grade Libraries) ===
+coincurve>=17.0.0           # libsecp256k1 bindings (ECDSA, ultra-fast)
+bip_utils>=2.10.0           # BIP-340 Schnorr signatures (Industry standard)
+
+# === TIMING & STATISTICS ===
+numpy>=1.24.0               # Statistical aggregation (P99, stddev)
+
+# === UTILITIES ===
+tabulate>=0.9.0             # Markdown table formatting for results

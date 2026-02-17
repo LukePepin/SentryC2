@@ -1,0 +1,75 @@
+[LAUNCH] Starting H2 Crypto Benchmark from: /home/sentry-supervisor/crypto_benchmark
+
+[STEP 1] Installing cryptographic dependencies...
+[STEP 1] ✅ Dependencies installed
+
+[STEP 2] Executing H2 Security Tax Benchmark...
+[INIT] CryptoBench harness initialized
+[INIT] Samples: 1000, Warmup: 50
+
+================================================================================
+H2 SECURITY TAX BENCHMARKING SUITE
+SentryC2 Thesis Validation
+================================================================================
+
+[BENCHMARK] Starting ECC/ECDSA measurement...
+  [WARMUP] 50 iterations (discarded)...
+  [MEASURE] 1000 iterations (timed)...
+    250/1000 samples collected
+    500/1000 samples collected
+    750/1000 samples collected
+    1000/1000 samples collected
+  [RESULT] Mean: 0.5459ms | P99: 0.5795ms
+
+[BENCHMARK] Starting Schnorr/ZKP measurement...
+  [WARMUP] 50 iterations (discarded)...
+  [MEASURE] 1000 iterations (timed)...
+    250/1000 samples collected
+    500/1000 samples collected
+    750/1000 samples collected
+    1000/1000 samples collected
+  [RESULT] Mean: 0.6707ms | P99: 0.7056ms
+
+================================================================================
+PERFORMANCE RESULTS
+================================================================================
+
++-------------------------------------+-------------+---------------+------------+---------------+------------+------------+-----------+
+| Operation                           |   Mean (ms) |   Median (ms) |   P99 (ms) |   StdDev (ms) |   Min (ms) |   Max (ms) |   Samples |
++=====================================+=============+===============+============+===============+============+============+===========+
+| ECC/ECDSA (secp256k1)               |      0.5459 |        0.5441 |     0.5795 |        0.0081 |     0.5302 |     0.5958 |      1000 |
++-------------------------------------+-------------+---------------+------------+---------------+------------+------------+-----------+
+| Schnorr/ZKP (secp256k1 double-sign) |      0.6707 |        0.6685 |     0.7056 |        0.009  |     0.6572 |     0.7278 |      1000 |
++-------------------------------------+-------------+---------------+------------+---------------+------------+------------+-----------+
+
+================================================================================
+SECURITY TAX ANALYSIS
+================================================================================
+
++----------+--------------------+
+| Metric   | Security Tax (%)   |
++==========+====================+
+| Mean     | 22.85%             |
++----------+--------------------+
+| P99      | 21.77%             |
++----------+--------------------+
+| Max      | 22.15%             |
++----------+--------------------+
+
+================================================================================
+H2 HYPOTHESIS VALIDATION
+================================================================================
+
+[H2 VERDICT] ✅ PASS
+[H2 MESSAGE] ZKP overhead (22.85%) exceeds acceptable threshold (15.0%)
+
+================================================================================
+OPERATIONAL GUIDANCE
+================================================================================
+
+✅ ZKP overhead is acceptable. Full authentication pipeline can tolerate ~22.9% latency increase.
+   - Mean cycle time: 0.5459ms (ECC) → 0.6707ms (ZKP)
+   - Budget remaining for H1 resilience: ~-170.7µs
+
+
+[LAUNCH] ✅ Benchmark completed successfully

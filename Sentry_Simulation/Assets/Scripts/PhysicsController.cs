@@ -26,7 +26,6 @@ namespace Unity.Robotics.UrdfImporter.Control
         
         [Tooltip("Angular damping for joint movement")]
         public float angularDamping = 10f;
-
         void Start()
         {
             // Add the FKRobot helper component
