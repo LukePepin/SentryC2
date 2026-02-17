@@ -102,33 +102,55 @@ def generate_figure(results: list):
     metrics = ["mean", "median", "p99"]
     labels = ["Mean", "Median", "P99"]
     x = np.arange(n_hosts)
-    width = 0.12
-    offsets = np.arange(len(metrics)) - (len(metrics) - 1) / 2
 
     ecc_color = "#1f77b4"
     zkp_color = "#d62728"
 
+    # 6 bars per host group: 3 ECC metrics + 3 ZKP metrics
+    n_bars = len(metrics) * 2
+    width = 0.7 / n_bars  # Total group width ~0.7
+    group_start = -(n_bars - 1) / 2 * width
+
+    bar_handles = []
+    bar_labels_legend = []
     for i, metric in enumerate(metrics):
         ecc_vals = [r["ecc"][metric] for r in results]
         zkp_vals = [r["zkp"][metric] for r in results]
 
-        bars_ecc = ax.bar(x + offsets[i] * width - width / 2, ecc_vals,
-                          width, label=f"ECC {labels[i]}" if i == 0 else None,
-                          color=ecc_color, alpha=0.4 + 0.2 * i, edgecolor="white")
-        bars_zkp = ax.bar(x + offsets[i] * width + width / 2, zkp_vals,
-                          width, label=f"ZKP {labels[i]}" if i == 0 else None,
-                          color=zkp_color, alpha=0.4 + 0.2 * i, edgecolor="white")
+        ecc_pos = x + group_start + (i * 2) * width
+        zkp_pos = x + group_start + (i * 2 + 1) * width
+
+        alpha = 0.5 + 0.15 * i
+        b_ecc = ax.bar(ecc_pos, ecc_vals, width * 0.9,
+                        color=ecc_color, alpha=alpha, edgecolor="white",
+                        linewidth=0.5)
+        b_zkp = ax.bar(zkp_pos, zkp_vals, width * 0.9,
+                        color=zkp_color, alpha=alpha, edgecolor="white",
+                        linewidth=0.5)
+
+        # Add value labels on top of bars
+        for pos, vals in [(ecc_pos, ecc_vals), (zkp_pos, zkp_vals)]:
+            for j, v in enumerate(vals):
+                ax.text(pos[j], v + 0.005, f"{v:.3f}", ha="center",
+                        va="bottom", fontsize=6, rotation=45)
+
+        if i == 0:
+            bar_handles.extend([b_ecc, b_zkp])
 
     ax.set_xticks(x)
     ax.set_xticklabels([r["hostname"] for r in results], fontsize=9)
     ax.set_ylabel("Latency (ms)")
-    ax.set_title("ECC vs ZKP Latency by Host", fontweight="bold")
+    ax.set_title("ECC vs ZKP Latency by Host (Mean | Median | P99)",
+                 fontweight="bold")
     ax.grid(True, axis="y", alpha=0.3, linestyle=":")
 
-    # Custom legend
+    # Custom legend with metric shading explanation
     ecc_patch = mpatches.Patch(color=ecc_color, alpha=0.7, label="ECC/ECDSA")
     zkp_patch = mpatches.Patch(color=zkp_color, alpha=0.7, label="Schnorr/ZKP")
     ax.legend(handles=[ecc_patch, zkp_patch], loc="upper left", fontsize=9)
+    ax.text(0.98, 0.95, "Light→Dark: Mean | Median | P99",
+            transform=ax.transAxes, fontsize=7, ha="right", va="top",
+            color="gray", fontstyle="italic")
 
     # --- Panel B: Security Tax Waterfall ---
     ax2 = axes[1]
