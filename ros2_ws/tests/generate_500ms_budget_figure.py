@@ -54,6 +54,15 @@ PROFILES = {
         "Network Jitter/Loss":  {"nominal": 0.1,   "worst": 5.0},
         "OS/ROS2 Scheduling":   {"nominal": 0.5,   "worst": 2.0},
     },
+    # Measured on physical Nano 33 BLE (Cortex-M4F @ 64MHz, micro-ecc secp256r1)
+    # Source: h2_results_nano33_20260218_091530.txt, h2_results_nano33_20260218_091634.txt
+    # N=100 samples (2 runs × 50), 5 warmup iterations per run
+    "Nano 33 BLE (Worker)": {
+        "ECC Key Generation":   {"nominal": 113.4, "worst": 113.6},
+        "ECDSA Sign":           {"nominal": 125.3, "worst": 125.6},
+        "ECDSA Verify":         {"nominal": 136.0, "worst": 141.8},
+        "Serial I/O Overhead":  {"nominal": 2.0,   "worst": 5.0},
+    },
 }
 
 # Color palette for each budget component
@@ -64,6 +73,10 @@ COLORS = {
     "Auth Pipeline (n=10)": "#ff7f0e",  # Orange
     "Network Jitter/Loss":  "#9467bd",  # Purple
     "OS/ROS2 Scheduling":   "#8c564b",  # Brown
+    "ECC Key Generation":   "#17becf",  # Cyan
+    "ECDSA Sign":           "#bcbd22",  # Olive
+    "ECDSA Verify":         "#e377c2",  # Pink
+    "Serial I/O Overhead":  "#7f7f7f",  # Gray
 }
 
 
@@ -230,6 +243,21 @@ def print_budget_analysis():
         f"The dominant cost is network jitter/loss ({pi4['Network Jitter/Loss']['worst']:.1f}ms worst), "
         f"not cryptography ({pi4['ZKP Tax (Schnorr Δ)']['worst']:.3f}ms) — "
         f"confirming H₂'s finding that security tax is operationally negligible."
+    )
+
+    nano = PROFILES["Nano 33 BLE (Worker)"]
+    nano_nom = sum(c["nominal"] for c in nano.values())
+    nano_worst = sum(c["worst"] for c in nano.values())
+    print(
+        f"\nOn Nano 33 BLE (Cortex-M4F @ 64MHz), the full crypto pipeline "
+        f"consumes {nano_nom:.1f}ms nominal / {nano_worst:.1f}ms worst-case — "
+        f"{'within' if nano_worst < BUDGET_MS else 'EXCEEDING'} the 500ms budget."
+    )
+    print(
+        f"Budget remaining: {BUDGET_MS - nano_nom:.1f}ms nominal / "
+        f"{BUDGET_MS - nano_worst:.1f}ms worst-case. "
+        f"The embedded crypto is ~250× slower than Pi 4 but still fits "
+        f"within the edge-recovery window."
     )
     print("=" * 72)
 

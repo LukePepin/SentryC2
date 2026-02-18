@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 # H2 Security Tax Benchmark Launch Script
 # Validates cryptographic performance on target hardware
 

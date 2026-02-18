@@ -193,13 +193,12 @@ static uint32_t compute_median(uint32_t *data, uint8_t count) {
  * All timing stored in the static arrays at index `idx`.
  */
 static bool benchmark_iteration(uint8_t idx) {
-    const struct uECC_Curve_t *curve = uECC_secp256r1();
     uint32_t t_start, t_elapsed;
     int result;
 
     // --- 1. KEY GENERATION ---
     t_start = micros();
-    result = uECC_make_key(public_key, private_key, curve);
+    result = uECC_make_key(public_key, private_key);
     t_elapsed = micros() - t_start;
 
     if (!result) {
@@ -210,8 +209,7 @@ static bool benchmark_iteration(uint8_t idx) {
 
     // --- 2. ECDSA SIGN ---
     t_start = micros();
-    result = uECC_sign(private_key, test_message, sizeof(test_message),
-                       signature, curve);
+    result = uECC_sign(private_key, test_message, signature);
     t_elapsed = micros() - t_start;
 
     if (!result) {
@@ -222,8 +220,7 @@ static bool benchmark_iteration(uint8_t idx) {
 
     // --- 3. ECDSA VERIFY (CRITICAL PATH) ---
     t_start = micros();
-    result = uECC_verify(public_key, test_message, sizeof(test_message),
-                         signature, curve);
+    result = uECC_verify(public_key, test_message, signature);
     t_elapsed = micros() - t_start;
 
     if (!result) {
@@ -386,10 +383,9 @@ void setup() {
     // === WARMUP PHASE (discarded, instruction cache priming) ===
     Serial.println("[PHASE 1] Warmup (discarded)...");
     for (uint8_t w = 0; w < NUM_WARMUP; w++) {
-        const struct uECC_Curve_t *curve = uECC_secp256r1();
-        uECC_make_key(public_key, private_key, curve);
-        uECC_sign(private_key, test_message, sizeof(test_message), signature, curve);
-        uECC_verify(public_key, test_message, sizeof(test_message), signature, curve);
+        uECC_make_key(public_key, private_key);
+        uECC_sign(private_key, test_message, signature);
+        uECC_verify(public_key, test_message, signature);
         Serial.print("  warmup ");
         Serial.print(w + 1);
         Serial.print("/");
