@@ -15,6 +15,7 @@ The SentryC2 system uses a bidirectional communication pattern where:
 ## Communication Flow Diagram
 
 ```mermaid
+%%{init: {"themeVariables": {"fontSize": "20px"}}}%%
 flowchart TB
     subgraph Docker["🐳 Docker Container (sentry-c2-dev)"]
         subgraph ROS2["ROS2 Humble Workspace"]
